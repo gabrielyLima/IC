@@ -1,5 +1,7 @@
 import math
 import random
+from comuniction_package import ComunicationPackageType
+from datetime import datetime
 
 
 class map():
@@ -14,9 +16,17 @@ class map():
         self.pos_wall = []
         self.min_step = 1
         self.max_step = 3
+        self.iteration_simulator = 0
 
         # Preenche todas as posições do mapa com 0
         self.__initialize_map()
+
+    def simulate(self, max_iteration):
+        for i in range(max_iteration):
+            self.show_map()
+            self.move_robots()
+            self.iteration_simulator = self.iteration_simulator + 1
+        self.show_map()
 
     def fill_map(self, posi_robot, posi_target, posi_wall):
         for pos in posi_robot:
@@ -52,7 +62,7 @@ class map():
     def move_robots(self):
         for i in range(len(self.pos_robot)):
             x, y = self.pos_robot[i]
-            self.marking_map(x, y)
+            self.marking_map(x, y, i)
 
             x_new = x + self.random_step()
             y_new = y + self.random_step()
@@ -69,7 +79,8 @@ class map():
             self.grid[y][x] = 1
             self.grid[y_new][x_new] = 6
 
-    def marking_map(self, x_pos_robot, y_pos_robot):
+    def marking_map(self, x_pos_robot, y_pos_robot, robot_index):
+
         # Gerando posições que serão visitadas de acordo com o raio
         pos_up = (x_pos_robot, y_pos_robot - 1)
         pos_down = (x_pos_robot, y_pos_robot + 1)
@@ -94,16 +105,48 @@ class map():
             if self.__is_on_matrix(pos):
                 posible_position.append(pos)
 
+        list_target = []
+        list_wall = []
+        pos_robot = (x_pos_robot, y_pos_robot)
         for pos in posible_position:
-            x_pos_robot, y_pos_robot = pos
+
+            x_pos_robotF, y_pos_robotF = pos
 
             # Se a célula estiver vazia siginifica que eu possa acessa-la
-            if self.grid[y_pos_robot][x_pos_robot] is 0:
-                self.grid[y_pos_robot][x_pos_robot] = 4
-            if self.grid[y_pos_robot][x_pos_robot] is 2:
-                pass
-            if self.grid[y_pos_robot][x_pos_robot] is 3:
-                pass
+            if self.grid[y_pos_robotF][x_pos_robotF] is 0:
+                self.grid[y_pos_robotF][x_pos_robotF] = 4
+            if self.grid[y_pos_robotF][x_pos_robotF] is 3:
+                wallFound = (x_pos_robotF, y_pos_robotF)
+                list_wall.append(wallFound)
+            if self.grid[y_pos_robotF][x_pos_robotF] is 2:
+                targetFound = (x_pos_robotF, y_pos_robotF)
+                list_target.append(targetFound)
+
+        now = datetime.now()
+        path = "pacotess/" + "i" + str(self.iteration_simulator) + "r" + str(robot_index)
+        if len(list_wall) is 0 and len(list_target) is 0:
+            # tipo 1
+            p = ComunicationPackageType(pos_robot=pos_robot)
+            p.save_package(path)
+
+        elif len(list_wall) is not 0 and len(list_target) is 0:
+            # tipo 1
+            pos_wall = self.__nearest(pos_robot, list_wall)
+            p = ComunicationPackageType(pos_robot=pos_robot, pos_wall=pos_wall)
+            p.save_package(path)
+
+        elif len(list_wall) is 0 and len(list_target) is not 0:
+            # tipo 2
+            pos_target = self.__nearest(pos_robot, list_target)
+            p = ComunicationPackageType(pos_robot=pos_robot, pos_target=pos_target)
+            p.save_package(path)
+
+        elif len(list_wall) is not 0 and len(list_target) is not 0:
+            # tipo 2
+            pos_wall = self.__nearest(pos_robot, list_wall)
+            pos_target = self.__nearest(pos_robot, list_target)
+            p = ComunicationPackageType(pos_robot, pos_target, pos_wall)
+            p.save_package(path)
 
     def show_map(self):
         for elem in self.grid:
@@ -144,3 +187,25 @@ class map():
     def __is_on_matrix(self, posi):
         x, y = posi
         return 0 <= x < self.width and 0 <= y < self.height
+
+    def distance_between_two_points(self, pos_obst, pos_robot):
+        x_pos_robot, y_pos_robot = pos_robot
+        x_pos_obst, y_pos_obst = pos_obst
+
+        resultado = math.sqrt(((x_pos_obst - x_pos_robot) ** 2) + ((y_pos_obst - y_pos_robot) ** 2))
+
+        return resultado
+
+    def __nearest(self, pos_robot, list_pos):
+        nearest_pos = list_pos[0]
+        best_dist = self.distance_between_two_points(list_pos[0], pos_robot)
+
+        for elem in list_pos:
+            x_pos, y_pos = elem
+            new_dist = self.distance_between_two_points(elem, pos_robot)
+
+            if new_dist < best_dist:
+                best_dist = new_dist
+                nearest_pos = elem
+
+        return nearest_pos

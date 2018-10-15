@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 from mapa import map
 
-max_iterations = 100
+
+max_iterations = 5
 
 m = map(10, 10)
 m.fill_map([(6, 6)], [(3.1, 7.9), (0.4, 1.2)], [(5, 5)])
@@ -41,8 +42,8 @@ for i in range(max_iterations):
     plt.ylim(-1, m.height + 1)
     plt.xlim(-1, m.width + 1)
 
-    plt.plot(target_x, target_y, "ro", c='g')
+    plt.plot(target_x, target_y, "ro")
     plt.plot(wall_x, wall_y, "ro", c='b')
-    plt.plot(x_robot, y_robot, "ro")
+    plt.plot(x_robot, y_robot, "ro", c='g')
     plt.savefig('test' + str(i) + ".png")
     m.move_robots()
