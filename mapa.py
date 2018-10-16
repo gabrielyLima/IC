@@ -77,7 +77,15 @@ class map():
             self.pos_robot[i] = (x_new, y_new)
             self.grid[y][x] = 1
             self.grid[y_new][x_new] = 6
-            self.map_history.append(self.grid)
+            grid = []
+
+            for elem in self.grid:
+                a = []
+                for elem1 in elem:
+                    a.append(elem1)
+                grid.append(a)
+
+            self.map_history.append(grid)
 
     def marking_map(self, x_pos_robot, y_pos_robot, robot_index):
 
