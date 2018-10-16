@@ -17,16 +17,15 @@ class map():
         self.min_step = 1
         self.max_step = 3
         self.iteration_simulator = 0
+        self.map_history = []
 
         # Preenche todas as posições do mapa com 0
         self.__initialize_map()
 
     def simulate(self, max_iteration):
         for i in range(max_iteration):
-            self.show_map()
             self.move_robots()
             self.iteration_simulator = self.iteration_simulator + 1
-        self.show_map()
 
     def fill_map(self, posi_robot, posi_target, posi_wall):
         for pos in posi_robot:
@@ -78,6 +77,7 @@ class map():
             self.pos_robot[i] = (x_new, y_new)
             self.grid[y][x] = 1
             self.grid[y_new][x_new] = 6
+            self.map_history.append(self.grid)
 
     def marking_map(self, x_pos_robot, y_pos_robot, robot_index):
 
@@ -123,7 +123,7 @@ class map():
                 list_target.append(targetFound)
 
         now = datetime.now()
-        path = "pacotess/" + "i" + str(self.iteration_simulator) + "r" + str(robot_index)
+        path = "i" + str(self.iteration_simulator) + "r" + str(robot_index)
         if len(list_wall) is 0 and len(list_target) is 0:
             # tipo 1
             p = ComunicationPackageType(pos_robot=pos_robot)
